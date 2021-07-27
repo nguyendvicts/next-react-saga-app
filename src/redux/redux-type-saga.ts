@@ -23,22 +23,16 @@ export interface ITypeActionCreator<Type = string, Payload = any> {
   (args?: Payload): TypeAction<Payload>;
   type: Type;
   reducer<State>(
-    reducer: (
-      state: State,
-      action: TypeAction<Payload>,
-    ) => Partial<State> | undefined,
+    reducer: (state: State, action: TypeAction<Payload>) => Partial<State> | undefined,
   ): ITypePartialReducer<Type, State>;
   isPending: <State>(store: State) => boolean;
 }
 
-export interface ITypeActionSagaCreator<Type, Payload, DONE = any>
-  extends ITypeActionCreator<Type, Payload> {
+export interface ITypeActionSagaCreator<Type, Payload, DONE = any> extends ITypeActionCreator<Type, Payload> {
   done: ITypeActionCreator<Type, DONE>;
 }
 
-export function createTypeAction<Payload = any>(
-  type: string,
-): ITypeActionCreator<string, Payload> {
+export function createTypeAction<Payload = any>(type: string): ITypeActionCreator<string, Payload> {
   const actionCreator: any = (payload: Payload): TypeAction<Payload> => ({
     type,
     payload,
@@ -71,7 +65,7 @@ export function createTypeReducer<State = Map<string, any>>(
   const reducerMap = Object.keys(partialReducersMap).reduce((r, type) => {
     const partialReducers = partialReducersMap[type];
     r[type] = (state: Map<string, any>, action: AnyAction) => {
-      return state.withMutations(temporaryState => {
+      return state.withMutations((temporaryState) => {
         // Version 1
         // partialReducers.reduce<Immutable.Map<string, any>>((s, pr) => {
         //   pr(s, action);
@@ -89,9 +83,7 @@ export function createTypeReducer<State = Map<string, any>>(
     return r;
   }, {});
   return (
-    state: State = typeof initialState === 'function'
-      ? (initialState as Function)()
-      : initialState,
+    state: State = typeof initialState === 'function' ? (initialState as Function)() : initialState,
     action: any,
   ) => {
     const reducer = reducerMap[action.type];
@@ -110,16 +102,10 @@ export function createTypeReduxInitialState(): ITypeReduxPendingState {
 }
 
 export const typePendingReducerSet = {
-  [REDUX_TYPE]: (
-    state = fromJS({}),
-    action = {} as AnyAction,
-  ): typeof state => {
+  [REDUX_TYPE]: (state = fromJS({}), action = {} as AnyAction): typeof state => {
     if (action.type === LOADING_TYPE) {
       const currentCount = state.get(LOADING_TYPE) || 0;
-      return state.set(
-        LOADING_TYPE,
-        !!action.payload ? currentCount + 1 : Math.max(0, currentCount - 1),
-      );
+      return state.set(LOADING_TYPE, !!action.payload ? currentCount + 1 : Math.max(0, currentCount - 1));
     }
     return state;
   },
